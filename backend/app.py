@@ -4,7 +4,7 @@ import os
 from functools import wraps
 from flask import Flask, request, jsonify, session, send_from_directory
 from flask_cors import CORS
-from database import get_db, init_db
+from backend.database import get_db, init_db
 
 # Point the static folder to the frontend directory
 frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend'))
@@ -289,7 +289,7 @@ if __name__ == '__main__':
     count = conn.execute("SELECT COUNT(*) FROM menu_items").fetchone()[0]
     conn.close()
     if count == 0:
-        from seed_data import seed
+        from backend.seed_data import seed
         seed()
     
     port = int(os.environ.get('PORT', 5000))

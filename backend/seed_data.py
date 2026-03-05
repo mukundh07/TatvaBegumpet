@@ -1,6 +1,6 @@
 """Seed the database with Tatva Begumpet menu items and default admin user."""
 import hashlib
-from database import get_db, init_db
+from backend.database import get_db, init_db
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
