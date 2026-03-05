@@ -10,8 +10,25 @@ from database import get_db, init_db
 frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend'))
 app = Flask(__name__, static_folder=frontend_dir, static_url_path='')
 
-app.secret_key = 'tatva-modern-dining-secret-key-2024'
-CORS(app, supports_credentials=True, origins=["http://localhost:5000", "http://127.0.0.1:5000", "http://localhost:8000", "http://127.0.0.1:8000"])
+app.secret_key = os.environ.get('SECRET_KEY', 'tatva-modern-dining-secret-key-2024')
+
+# In production, we should specify the exact origins.
+# For now, we allow localhost for development and a placeholder for the live site.
+allowed_origins = [
+    "http://localhost:5000",
+    "http://127.0.0.1:5000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:3000"
+]
+
+# Add Vercel URL if provided in environment variables
+vercel_url = os.environ.get('VERCEL_URL')
+if vercel_url:
+    allowed_origins.append(f"https://{vercel_url}")
+    allowed_origins.append(vercel_url)
+
+CORS(app, supports_credentials=True, origins=allowed_origins)
 
 # ───────── STATIC FILE SERVING ─────────
 
