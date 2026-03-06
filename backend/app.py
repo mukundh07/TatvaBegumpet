@@ -64,6 +64,25 @@ ensure_db_initialized()
 
 CORS(app, supports_credentials=True, origins=allowed_origins, allow_headers=["Content-Type", "Authorization"])
 
+@app.route('/api/debug/db')
+def debug_db():
+    from backend.database import DB_PATH
+    info = {
+        "db_path": DB_PATH,
+        "exists": os.path.exists(DB_PATH),
+        "cwd": os.getcwd(),
+        "tables": []
+    }
+    if info["exists"]:
+        try:
+            conn = get_db()
+            tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+            info["tables"] = [row[0] for row in tables]
+            conn.close()
+        except Exception as e:
+            info["error"] = str(e)
+    return jsonify(info)
+
 # ───────── STATIC FILE SERVING ─────────
 
 @app.route('/')

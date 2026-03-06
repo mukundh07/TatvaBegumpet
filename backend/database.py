@@ -1,7 +1,9 @@
 import sqlite3
 import os
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tatva.db')
+# Database path - use absolute path to the project root for Render reliability
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_PATH = os.path.join(ROOT_DIR, 'tatva.db')
 
 def get_db():
     print(f"Connecting to database at: {DB_PATH}")
