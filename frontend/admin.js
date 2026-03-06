@@ -356,6 +356,7 @@ async function fetchReservations() {
             <option value="confirmed" ${item.status === 'confirmed' ? 'selected' : ''}>Confirm</option>
             <option value="cancelled" ${item.status === 'cancelled' ? 'selected' : ''}>Cancel</option>
           </select>
+          <button class="btn btn-sm" style="background-color: #25D366; color: white; border: none; margin-right: 0.5rem;" onclick='sendWhatsAppNotification(${JSON.stringify(item)})'>WhatsApp</button>
           <button class="btn btn-sm btn-danger" onclick='deleteReservation(${item.id})'>Del</button>
         </td>
       `;
@@ -388,6 +389,25 @@ window.deleteReservation = async (id) => {
         });
         fetchReservations();
     } catch (err) { console.error(err); }
+};
+
+window.sendWhatsAppNotification = (item) => {
+    const name = item.name;
+    const phone = item.phone.replace(/\D/g, ''); // Remove non-digits
+    const date = item.date;
+    const time = item.time;
+
+    // Ensure phone has country code if missing (assuming India +91)
+    let finalPhone = phone;
+    if (phone.length === 10) {
+        finalPhone = '91' + phone;
+    }
+
+    const message = `Hi ${name}, this is Tatva Begumpet. Your reservation for ${date} at ${time} is confirmed! We look forward to seeing you.`;
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${finalPhone}?text=${encodedMessage}`;
+
+    window.open(whatsappUrl, '_blank');
 };
 
 // --- Enquiries Management ---
