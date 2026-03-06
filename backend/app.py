@@ -3,6 +3,8 @@ import hashlib
 import os
 from functools import wraps
 import traceback
+import datetime
+import jwt
 from flask import Flask, request, jsonify, session, send_from_directory
 from flask_cors import CORS
 from backend.database import get_db, init_db
@@ -12,6 +14,13 @@ frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'fr
 app = Flask(__name__, static_folder=frontend_dir, static_url_path='')
 
 app.secret_key = os.environ.get('SECRET_KEY', 'tatva-modern-dining-secret-key-2024')
+
+# Cookie configuration for cross-site (Vercel -> Render)
+app.config.update(
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_SAMESITE='None',
+    SESSION_COOKIE_HTTPONLY=True,
+)
 
 # In production, we should specify the exact origins.
 allowed_origins = [
@@ -31,7 +40,7 @@ if vercel_url:
     allowed_origins.append(f"http://{clean_url}")
     allowed_origins.append(clean_url)
 
-CORS(app, supports_credentials=True, origins=allowed_origins)
+CORS(app, supports_credentials=True, origins=allowed_origins, allow_headers=["Content-Type", "Authorization"])
 
 # Ensure database is initialized even when running under Gunicorn
 with app.app_context():
@@ -73,8 +82,24 @@ def hash_password(password):
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        if 'admin_id' not in session:
-            return jsonify({"error": "Unauthorized"}), 401
+        print(f"--- Auth Check for {request.path} ---")
+        print(f"Headers: {dict(request.headers)}")
+        token = None
+        if 'Authorization' in request.headers:
+            auth_header = request.headers['Authorization']
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split(" ")[1]
+        
+        if not token:
+            return jsonify({"error": "Token is missing"}), 401
+        
+        try:
+            data = jwt.decode(token, app.secret_key, algorithms=["HS256"])
+            # You can attach the admin data to the request if needed
+            request.admin_id = data['admin_id']
+        except Exception as e:
+            return jsonify({"error": "Invalid token"}), 401
+            
         return f(*args, **kwargs)
     return decorated
 
@@ -171,23 +196,45 @@ def admin_login():
     conn.close()
 
     if user:
-        session['admin_id'] = user['id']
-        session['admin_username'] = user['username']
-        return jsonify({"success": True, "username": user['username']})
+        # Generate JWT Token (valid for 1 day)
+        token = jwt.encode({
+            'admin_id': user['id'],
+            'username': user['username'],
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)
+        }, app.secret_key, algorithm="HS256")
+        
+        return jsonify({
+            "success": True, 
+            "username": user['username'],
+            "token": token
+        })
     return jsonify({"error": "Invalid credentials"}), 401
 
 
 @app.route('/api/admin/logout', methods=['POST'])
 def admin_logout():
-    session.clear()
+    # Token-based logout usually handled by deleting on frontend
     return jsonify({"success": True})
 
 
 @app.route('/api/admin/check', methods=['GET'])
 def admin_check():
-    if 'admin_id' in session:
-        return jsonify({"authenticated": True, "username": session['admin_username']})
-    return jsonify({"authenticated": False}), 401
+    # For token auth, the frontend just checks if a token exists in localStorage,
+    # but we can provide an endpoint to verify the token validity
+    token = None
+    if 'Authorization' in request.headers:
+        auth_header = request.headers['Authorization']
+        if auth_header.startswith('Bearer '):
+            token = auth_header.split(" ")[1]
+            
+    if not token:
+        return jsonify({"authenticated": False}), 401
+        
+    try:
+        data = jwt.decode(token, app.secret_key, algorithms=["HS256"])
+        return jsonify({"authenticated": True, "username": data['username']})
+    except:
+        return jsonify({"authenticated": False}), 401
 
 
 # ───────── ADMIN: MENU MANAGEMENT ─────────

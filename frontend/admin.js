@@ -31,13 +31,29 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- Auth Functions ---
+function getAuthHeaders() {
+    const token = localStorage.getItem('tatva_admin_token');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
+}
+
 async function checkAuth() {
+    const token = localStorage.getItem('tatva_admin_token');
+    if (!token) {
+        showLogin();
+        return;
+    }
+
     try {
-        // Include credentials to send session cookies
-        const res = await fetch(`${API_URL}/admin/check`, { credentials: 'include' });
+        const res = await fetch(`${API_URL}/admin/check`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (res.ok) {
             showDashboard();
         } else {
+            localStorage.removeItem('tatva_admin_token');
             showLogin();
         }
     } catch (error) {
@@ -65,12 +81,12 @@ loginForm.addEventListener('submit', async (e) => {
         const res = await fetch(`${API_URL}/admin/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password }),
-            credentials: 'include'
+            body: JSON.stringify({ username, password })
         });
 
         const data = await res.json();
         if (res.ok && data.success) {
+            localStorage.setItem('tatva_admin_token', data.token); // Save Token!
             loginError.textContent = '';
             showDashboard();
         } else {
@@ -82,11 +98,8 @@ loginForm.addEventListener('submit', async (e) => {
 });
 
 logoutBtn.addEventListener('click', async () => {
-    try {
-        await fetch(`${API_URL}/admin/logout`, { method: 'POST', credentials: 'include' });
-    } finally {
-        showLogin();
-    }
+    localStorage.removeItem('tatva_admin_token'); // Clear Token!
+    showLogin();
 });
 
 // --- Navigation ---
@@ -114,7 +127,9 @@ function loadPanelData(panelId) {
 // --- Menu Management ---
 async function fetchMenu() {
     try {
-        const res = await fetch(`${API_URL}/admin/menu`, { credentials: 'include' });
+        const res = await fetch(`${API_URL}/admin/menu`, {
+            headers: getAuthHeaders()
+        });
         if (!res.ok) throw new Error('Failed to fetch');
         const items = await res.json();
 
@@ -233,9 +248,8 @@ menuForm.addEventListener('submit', async (e) => {
     try {
         const res = await fetch(url, {
             method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-            credentials: 'include'
+            headers: getAuthHeaders(),
+            body: JSON.stringify(payload)
         });
         if (res.ok) {
             menuModal.classList.add('hidden');
@@ -255,7 +269,7 @@ window.deleteMenuItem = async (id) => {
     try {
         const res = await fetch(`${API_URL}/admin/menu/${id}`, {
             method: 'DELETE',
-            credentials: 'include'
+            headers: getAuthHeaders()
         });
         if (res.ok) fetchMenu();
     } catch (err) {
@@ -266,7 +280,9 @@ window.deleteMenuItem = async (id) => {
 // --- Reservations Management ---
 async function fetchReservations() {
     try {
-        const res = await fetch(`${API_URL}/admin/reservations`, { credentials: 'include' });
+        const res = await fetch(`${API_URL}/admin/reservations`, {
+            headers: getAuthHeaders()
+        });
         if (!res.ok) throw new Error('Failed to fetch');
         const items = await res.json();
 
@@ -302,9 +318,8 @@ window.updateReservationStatus = async (id, status) => {
     try {
         await fetch(`${API_URL}/admin/reservations/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status }),
-            credentials: 'include'
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ status })
         });
         fetchReservations(); // Refresh
     } catch (err) {
@@ -315,7 +330,10 @@ window.updateReservationStatus = async (id, status) => {
 window.deleteReservation = async (id) => {
     if (!confirm('Delete reservation?')) return;
     try {
-        await fetch(`${API_URL}/admin/reservations/${id}`, { method: 'DELETE', credentials: 'include' });
+        await fetch(`${API_URL}/admin/reservations/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
         fetchReservations();
     } catch (err) { console.error(err); }
 };
@@ -323,7 +341,9 @@ window.deleteReservation = async (id) => {
 // --- Enquiries Management ---
 async function fetchEnquiries() {
     try {
-        const res = await fetch(`${API_URL}/admin/enquiries`, { credentials: 'include' });
+        const res = await fetch(`${API_URL}/admin/enquiries`, {
+            headers: getAuthHeaders()
+        });
         if (!res.ok) throw new Error('Failed to fetch');
         const items = await res.json();
 
@@ -357,9 +377,8 @@ window.updateEnquiryStatus = async (id, status) => {
     try {
         await fetch(`${API_URL}/admin/enquiries/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status }),
-            credentials: 'include'
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ status })
         });
         fetchEnquiries();
     } catch (err) {
@@ -370,7 +389,10 @@ window.updateEnquiryStatus = async (id, status) => {
 window.deleteEnquiry = async (id) => {
     if (!confirm('Delete enquiry?')) return;
     try {
-        await fetch(`${API_URL}/admin/enquiries/${id}`, { method: 'DELETE', credentials: 'include' });
+        await fetch(`${API_URL}/admin/enquiries/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
         fetchEnquiries();
     } catch (err) { console.error(err); }
 };
