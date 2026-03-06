@@ -3,10 +3,9 @@
    ============================================ */
 
 // Set this to your live Render URL after deployment
-// Example: const API_URL = 'https://tatva-backend.onrender.com/api';
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:5000/api'
-    : 'https://tatva-backend.onrender.com/api'; // Replace with your actual Render URL
+    : 'https://tatvabegumpet.onrender.com/api';
 
 document.addEventListener('DOMContentLoaded', () => {
 

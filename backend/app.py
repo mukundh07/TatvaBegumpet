@@ -2,6 +2,7 @@
 import hashlib
 import os
 from functools import wraps
+import traceback
 from flask import Flask, request, jsonify, session, send_from_directory
 from flask_cors import CORS
 from backend.database import get_db, init_db
@@ -13,7 +14,6 @@ app = Flask(__name__, static_folder=frontend_dir, static_url_path='')
 app.secret_key = os.environ.get('SECRET_KEY', 'tatva-modern-dining-secret-key-2024')
 
 # In production, we should specify the exact origins.
-# For now, we allow localhost for development and a placeholder for the live site.
 allowed_origins = [
     "http://localhost:5000",
     "http://127.0.0.1:5000",
@@ -25,10 +25,28 @@ allowed_origins = [
 # Add Vercel URL if provided in environment variables
 vercel_url = os.environ.get('VERCEL_URL')
 if vercel_url:
-    allowed_origins.append(f"https://{vercel_url}")
-    allowed_origins.append(vercel_url)
+    # Clean the URL to avoid double https://
+    clean_url = vercel_url.replace('https://', '').replace('http://', '').strip('/')
+    allowed_origins.append(f"https://{clean_url}")
+    allowed_origins.append(f"http://{clean_url}")
+    allowed_origins.append(clean_url)
 
 CORS(app, supports_credentials=True, origins=allowed_origins)
+
+# Ensure database is initialized even when running under Gunicorn
+with app.app_context():
+    init_db()
+    # Run seed if DB is empty
+    conn = get_db()
+    try:
+        count = conn.execute("SELECT COUNT(*) FROM menu_items").fetchone()[0]
+        if count == 0:
+            from backend.seed_data import seed
+            seed()
+    except Exception as e:
+        print(f"Error during DB seeding: {e}")
+    finally:
+        conn.close()
 
 # ───────── STATIC FILE SERVING ─────────
 
@@ -59,6 +77,19 @@ def login_required(f):
             return jsonify({"error": "Unauthorized"}), 401
         return f(*args, **kwargs)
     return decorated
+
+
+@app.errorhandler(500)
+def handle_500_error(e):
+    # Log the full traceback to the server console (Render logs)
+    print("SERIOUS SERVER ERROR: 500")
+    print(traceback.format_exc())
+    # Return the traceback in the response for direct debugging
+    return jsonify({
+        "error": "Internal Server Error",
+        "details": str(e),
+        "traceback": traceback.format_exc()
+    }), 500
 
 
 # ───────── PUBLIC ENDPOINTS ─────────
@@ -283,15 +314,6 @@ def admin_delete_enquiry(enq_id):
 
 
 if __name__ == '__main__':
-    init_db()
-    # Run seed if DB is empty
-    conn = get_db()
-    count = conn.execute("SELECT COUNT(*) FROM menu_items").fetchone()[0]
-    conn.close()
-    if count == 0:
-        from backend.seed_data import seed
-        seed()
-    
     port = int(os.environ.get('PORT', 5000))
     print(f"Tatva Backend running on port {port}")
     app.run(host='0.0.0.0', port=port)
