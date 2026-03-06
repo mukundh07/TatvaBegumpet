@@ -40,22 +40,29 @@ if vercel_url:
     allowed_origins.append(f"http://{clean_url}")
     allowed_origins.append(clean_url)
 
-CORS(app, supports_credentials=True, origins=allowed_origins, allow_headers=["Content-Type", "Authorization"])
-
-def init_app_db():
-    """Initialize database and seed if empty. Only called on startup."""
-    with app.app_context():
-        init_db()
+# Self-healing Database Initialization
+def ensure_db_initialized():
+    print("--- Checking Database Integrity ---")
+    try:
+        from backend.database import init_db, get_db
+        init_db() # Create tables if they don't exist
         conn = get_db()
-        try:
-            count = conn.execute("SELECT COUNT(*) FROM menu_items").fetchone()[0]
-            if count == 0:
-                from backend.seed_data import seed
-                seed()
-        except Exception as e:
-            print(f"Error during DB seeding: {e}")
-        finally:
-            conn.close()
+        # Check if we need to seed
+        count = conn.execute("SELECT COUNT(*) FROM menu_items").fetchone()[0]
+        if count == 0:
+            print("DB empty, seeding...")
+            from backend.seed_data import seed
+            seed()
+        print(f"DB check complete. Found {count} items.")
+        conn.close()
+    except Exception as e:
+        print(f"DB Integrity Check FAILED: {e}")
+        import traceback
+        traceback.print_exc()
+
+ensure_db_initialized()
+
+CORS(app, supports_credentials=True, origins=allowed_origins, allow_headers=["Content-Type", "Authorization"])
 
 # ───────── STATIC FILE SERVING ─────────
 
@@ -108,7 +115,9 @@ def login_required(f):
 def handle_500_error(e):
     # Log the full traceback to the server console (Render logs)
     print("SERIOUS SERVER ERROR: 500")
-    print(traceback.format_exc())
+    import traceback
+    traceback.print_exc()
+    return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
     # Return the traceback in the response for direct debugging
     return jsonify({
         "error": "Internal Server Error",

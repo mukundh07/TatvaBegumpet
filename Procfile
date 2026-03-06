@@ -1,1 +1,1 @@
-web: PYTHONPATH=. python backend/database.py && PYTHONPATH=. gunicorn backend.app:app
+web: PYTHONPATH=. gunicorn backend.app:app
