@@ -188,20 +188,34 @@ async function fetchMenu() {
         items.forEach(item => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-        <td>${item.id}</td>
-        <td>${item.category}</td>
-        <td>${item.name}</td>
-        <td>${item.price.toFixed(2)}</td>
-        <td>
-          <span class="badge ${item.is_available ? 'badge-success' : 'badge-danger'}">
-            ${item.is_available ? 'Yes' : 'No'}
-          </span>
-        </td>
-        <td class="td-actions">
-          <button class="btn btn-sm" onclick='editMenuItem(${JSON.stringify(item)})'>Edit</button>
-          <button class="btn btn-sm btn-danger" onclick='deleteMenuItem(${item.id})'>Delete</button>
-        </td>
-      `;
+                <td>${item.id}</td>
+                <td>${item.category}</td>
+                <td>${item.name}</td>
+                <td>${item.price.toFixed(2)}</td>
+                <td>
+                  <span class="badge ${item.is_available ? 'badge-success' : 'badge-danger'}">
+                    ${item.is_available ? 'Yes' : 'No'}
+                  </span>
+                </td>
+                <td class="td-actions"></td>
+            `;
+
+            const actionsTd = tr.querySelector('.td-actions');
+
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn btn-sm';
+            editBtn.textContent = 'Edit';
+            editBtn.style.marginRight = '0.5rem';
+            editBtn.onclick = () => editMenuItem(item);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-sm btn-danger';
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.onclick = () => deleteMenuItem(item.id);
+
+            actionsTd.appendChild(editBtn);
+            actionsTd.appendChild(deleteBtn);
+
             menuTableBody.appendChild(tr);
         });
     } catch (err) {
@@ -344,22 +358,40 @@ async function fetchReservations() {
                 item.status === 'confirmed' ? 'badge-success' : 'badge-danger';
             const tr = document.createElement('tr');
             tr.innerHTML = `
-        <td>${item.id}</td>
-        <td>${item.name}</td>
-        <td>${item.phone}<br><small>${item.email}</small></td>
-        <td>${item.date} <br> ${item.time}</td>
-        <td>${item.guests}</td>
-        <td><span class="badge ${badgeClass}">${item.status}</span></td>
-        <td class="td-actions">
-          <select onchange="updateReservationStatus(${item.id}, this.value)" style="margin-right:0.5rem">
-            <option value="pending" ${item.status === 'pending' ? 'selected' : ''}>Pending</option>
-            <option value="confirmed" ${item.status === 'confirmed' ? 'selected' : ''}>Confirm</option>
-            <option value="cancelled" ${item.status === 'cancelled' ? 'selected' : ''}>Cancel</option>
-          </select>
-          <button class="btn btn-sm" style="background-color: #25D366; color: white; border: none; margin-right: 0.5rem;" onclick='sendWhatsAppNotification(${JSON.stringify(item)})'>WhatsApp</button>
-          <button class="btn btn-sm btn-danger" onclick='deleteReservation(${item.id})'>Del</button>
-        </td>
-      `;
+                <td>${item.id}</td>
+                <td>${item.name}</td>
+                <td>${item.phone}<br><small>${item.email}</small></td>
+                <td>${item.date} <br> ${item.time}</td>
+                <td>${item.guests}</td>
+                <td><span class="badge ${badgeClass}">${item.status}</span></td>
+                <td class="td-actions">
+                    <select onchange="updateReservationStatus(${item.id}, this.value)" style="margin-right:0.5rem">
+                        <option value="pending" ${item.status === 'pending' ? 'selected' : ''}>Pending</option>
+                        <option value="confirmed" ${item.status === 'confirmed' ? 'selected' : ''}>Confirm</option>
+                        <option value="cancelled" ${item.status === 'cancelled' ? 'selected' : ''}>Cancel</option>
+                    </select>
+                </td>
+            `;
+
+            const actionsTd = tr.querySelector('.td-actions');
+
+            const waBtn = document.createElement('button');
+            waBtn.className = 'btn btn-sm';
+            waBtn.style.backgroundColor = '#25D366';
+            waBtn.style.color = 'white';
+            waBtn.style.border = 'none';
+            waBtn.style.marginRight = '0.5rem';
+            waBtn.textContent = 'WhatsApp';
+            waBtn.onclick = () => sendWhatsAppNotification(item);
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'btn btn-sm btn-danger';
+            delBtn.textContent = 'Del';
+            delBtn.onclick = () => deleteReservation(item.id);
+
+            actionsTd.appendChild(waBtn);
+            actionsTd.appendChild(delBtn);
+
             resTableBody.appendChild(tr);
         });
     } catch (err) {
