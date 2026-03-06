@@ -9,6 +9,8 @@ const dashboard = document.getElementById('dashboard');
 const loginForm = document.getElementById('login-form');
 const loginError = document.getElementById('login-error');
 const logoutBtn = document.getElementById('logout-btn');
+const securityForm = document.getElementById('security-form');
+const securityMsg = document.getElementById('security-msg');
 
 // Nav Buttons & Panels
 const navBtns = document.querySelectorAll('.nav-btn');
@@ -122,6 +124,55 @@ function loadPanelData(panelId) {
     if (panelId === 'menu-panel') fetchMenu();
     if (panelId === 'reservations-panel') fetchReservations();
     if (panelId === 'enquiries-panel') fetchEnquiries();
+    // Security panel doesn't need pre-fetching
+}
+
+// --- Security Management ---
+if (securityForm) {
+    securityForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const currentPassword = document.getElementById('sec-current-password').value;
+        const newUsername = document.getElementById('sec-new-username').value;
+        const newPassword = document.getElementById('sec-new-password').value;
+        const confirmPassword = document.getElementById('sec-confirm-password').value;
+
+        if (newPassword !== confirmPassword) {
+            securityMsg.textContent = 'Passwords do not match';
+            securityMsg.style.color = 'red';
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/admin/update-credentials`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    current_password: currentPassword,
+                    new_username: newUsername,
+                    new_password: newPassword
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                securityMsg.textContent = data.message;
+                securityMsg.style.color = 'green';
+                securityForm.reset();
+
+                // Force logout after a short delay
+                setTimeout(() => {
+                    localStorage.removeItem('tatva_admin_token');
+                    showLogin();
+                }, 2000);
+            } else {
+                securityMsg.textContent = data.error || 'Update failed';
+                securityMsg.style.color = 'red';
+            }
+        } catch (err) {
+            securityMsg.textContent = 'Network error';
+            securityMsg.style.color = 'red';
+        }
+    });
 }
 
 // --- Menu Management ---

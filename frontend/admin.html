@@ -43,6 +43,7 @@
                 <button class="nav-btn active" data-target="menu-panel">Menu Management</button>
                 <button class="nav-btn" data-target="reservations-panel">Reservations</button>
                 <button class="nav-btn" data-target="enquiries-panel">Enquiries</button>
+                <button class="nav-btn" data-target="security-panel">Security</button>
             </nav>
             <div class="sidebar-footer">
                 <button id="logout-btn" class="btn btn-outline">Logout</button>
@@ -122,6 +123,37 @@
                             <!-- Populated by JS -->
                         </tbody>
                     </table>
+                </div>
+            </section>
+            <!-- Security Panel -->
+            <section id="security-panel" class="panel hidden">
+                <div class="panel-header">
+                    <h2>Admin Security</h2>
+                </div>
+                <div class="card" style="max-width: 500px; margin-top: 2rem;">
+                    <h3>Update Credentials</h3>
+                    <p style="margin-bottom: 1.5rem; color: var(--text-light);">Change your administrator username and
+                        password. You will be logged out upon success.</p>
+                    <form id="security-form">
+                        <div class="form-group">
+                            <label for="sec-current-password">Current Password</label>
+                            <input type="password" id="sec-current-password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sec-new-username">New Username</label>
+                            <input type="text" id="sec-new-username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sec-new-password">New Password</label>
+                            <input type="password" id="sec-new-password" required minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="sec-confirm-password">Confirm New Password</label>
+                            <input type="password" id="sec-confirm-password" required minlength="6">
+                        </div>
+                        <button type="submit" class="btn">Update Credentials</button>
+                        <p id="security-msg" style="margin-top: 1rem; font-weight: 500;"></p>
+                    </form>
                 </div>
             </section>
         </main>

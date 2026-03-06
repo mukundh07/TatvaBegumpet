@@ -269,6 +269,41 @@ def admin_check():
         return jsonify({"authenticated": False}), 401
 
 
+@app.route('/api/admin/update-credentials', methods=['POST'])
+@login_required
+def admin_update_credentials():
+    data = request.get_json()
+    current_password = data.get('current_password', '')
+    new_username = data.get('new_username', '')
+    new_password = data.get('new_password', '')
+
+    if not current_password or not new_username or not new_password:
+        return jsonify({"error": "All fields are required"}), 400
+
+    conn = get_db()
+    # Verify current password
+    user = conn.execute(
+        "SELECT * FROM admin_users WHERE id = ? AND password = ?",
+        (request.admin_id, hash_password(current_password))
+    ).fetchone()
+
+    if not user:
+        conn.close()
+        return jsonify({"error": "Incorrect current password"}), 401
+
+    try:
+        conn.execute(
+            "UPDATE admin_users SET username = ?, password = ? WHERE id = ?",
+            (new_username, hash_password(new_password), request.admin_id)
+        )
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True, "message": "Credentials updated successfully. Please log in again."})
+    except Exception as e:
+        conn.close()
+        return jsonify({"error": f"Failed to update credentials: {str(e)}"}), 500
+
+
 # ───────── ADMIN: MENU MANAGEMENT ─────────
 
 @app.route('/api/admin/menu', methods=['GET'])
