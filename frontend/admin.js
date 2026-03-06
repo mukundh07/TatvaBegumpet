@@ -255,7 +255,8 @@ menuForm.addEventListener('submit', async (e) => {
             menuModal.classList.add('hidden');
             fetchMenu();
         } else {
-            alert('Failed to save menu item');
+            console.error('Save failed:', res.status, await res.text());
+            alert(`Failed to save menu item. Error: ${res.status}. Please try logging out and in again.`);
         }
     } catch (err) {
         console.error(err);

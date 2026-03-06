@@ -42,20 +42,20 @@ if vercel_url:
 
 CORS(app, supports_credentials=True, origins=allowed_origins, allow_headers=["Content-Type", "Authorization"])
 
-# Ensure database is initialized even when running under Gunicorn
-with app.app_context():
-    init_db()
-    # Run seed if DB is empty
-    conn = get_db()
-    try:
-        count = conn.execute("SELECT COUNT(*) FROM menu_items").fetchone()[0]
-        if count == 0:
-            from backend.seed_data import seed
-            seed()
-    except Exception as e:
-        print(f"Error during DB seeding: {e}")
-    finally:
-        conn.close()
+def init_app_db():
+    """Initialize database and seed if empty. Only called on startup."""
+    with app.app_context():
+        init_db()
+        conn = get_db()
+        try:
+            count = conn.execute("SELECT COUNT(*) FROM menu_items").fetchone()[0]
+            if count == 0:
+                from backend.seed_data import seed
+                seed()
+        except Exception as e:
+            print(f"Error during DB seeding: {e}")
+        finally:
+            conn.close()
 
 # ───────── STATIC FILE SERVING ─────────
 
@@ -202,6 +202,10 @@ def admin_login():
             'username': user['username'],
             'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)
         }, app.secret_key, algorithm="HS256")
+        
+        # Ensure token is a string (PyJWT < 2.0 returns bytes)
+        if isinstance(token, bytes):
+            token = token.decode('utf-8')
         
         return jsonify({
             "success": True, 
