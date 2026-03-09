@@ -2,10 +2,9 @@
    TATVA – MODERN DINING | JavaScript
    ============================================ */
 
-// Set this to your live Render URL after deployment
-const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000/api'
-    : 'https://tatvabegumpet.onrender.com/api';
+const API_URL = window.location.hostname === 'tatvabegumpet.onrender.com'
+    ? 'https://tatvabegumpet.onrender.com/api'
+    : '/api';
 
 document.addEventListener('DOMContentLoaded', () => {
 

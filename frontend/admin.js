@@ -1,7 +1,6 @@
-// Set this to your live Render URL after deployment
-const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000/api'
-    : 'https://tatvabegumpet.onrender.com/api';
+const API_URL = window.location.hostname === 'tatvabegumpet.onrender.com'
+    ? 'https://tatvabegumpet.onrender.com/api'
+    : '/api';
 
 // --- DOM Elements ---
 const loginOverlay = document.getElementById('login-overlay');
@@ -425,9 +424,15 @@ window.deleteReservation = async (id) => {
 
 window.sendWhatsAppNotification = (item) => {
     const name = item.name;
-    const phone = item.phone.replace(/\D/g, ''); // Remove non-digits
-    const date = item.date;
-    const time = item.time;
+    const phone = (item.phone || '').replace(/\D/g, ''); // Remove non-digits
+
+    if (!phone) {
+        alert('No phone number available for this contact.');
+        return;
+    }
+
+    const date = item.date || '';
+    const time = item.time || '';
 
     // Ensure phone has country code if missing (assuming India +91)
     let finalPhone = phone;
@@ -435,7 +440,13 @@ window.sendWhatsAppNotification = (item) => {
         finalPhone = '91' + phone;
     }
 
-    const message = `Hi ${name}, this is Tatva Begumpet. Your reservation for ${date} at ${time} is confirmed! We look forward to seeing you.`;
+    let message = `Hi ${name}, this is Tatva Begumpet. `;
+    if (date && time) {
+        message += `Your reservation for ${date} at ${time} is confirmed! We look forward to seeing you.`;
+    } else {
+        message += `Thank you for your enquiry. How can we help you today?`;
+    }
+
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${finalPhone}?text=${encodedMessage}`;
 
@@ -467,6 +478,7 @@ async function fetchEnquiries() {
             <option value="unread" ${item.status === 'unread' ? 'selected' : ''}>Unread</option>
             <option value="read" ${item.status === 'read' ? 'selected' : ''}>Read</option>
           </select>
+          <button class="btn btn-sm" style="background-color: #25D366; color: white; border: none; margin-right: 0.5rem;" onclick='sendWhatsAppNotification(${JSON.stringify(item)})'>WhatsApp</button>
           <button class="btn btn-sm btn-danger" onclick='deleteEnquiry(${item.id})'>Del</button>
         </td>
       `;

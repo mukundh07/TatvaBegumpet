@@ -34,6 +34,8 @@ def seed():
         ("Starters & Appetizers", "Special Thai Shashlik Paneer", "Jardinieres of paneer served with Thai sauce", 499),
         ("Starters & Appetizers", "Sweet & Spicy Water Chestnut", "Deep-fried water chestnuts in sweet and spicy sauce", 525),
         ("Starters & Appetizers", "Kung Pao Lotus Stem", "Chef Special — crisply fried lotus stem tossed in spicy soy-based sauce with crushed peanuts", 525),
+        ("Starters & Appetizers", "Lotus Stem Kibbeh", "Middle-Eastern inspired vegetable dumplings made with finely minced lotus stem and aromatic herbs", 549),
+        ("Starters & Appetizers", "Chilli Honey Potatoes", "Crispy potato batons tossed in a sweet and spicy honey glaze with sesame", 475),
         ("Starters & Appetizers", "Hara Bhara Kebab", "Spinach and green peas kebab with aromatic spices", 575),
         ("Starters & Appetizers", "Jalapeno Poppers", "Crispy jalapeno bites with creamy cheese filling", 599),
         ("Starters & Appetizers", "Paneer Tikka", "Tandoor-grilled paneer marinated in spiced yoghurt", 549),
@@ -78,6 +80,7 @@ def seed():
         # Pizza & Continental
         ("Pizza & Continental", "Tandoori Paneer Tikka Pizza", "12-inch pizza with tandoori paneer tikka topping", 575),
         ("Pizza & Continental", "Quesadillas", "Mexican-style grilled tortilla with cheese and veggie filling", 500),
+        ("Pizza & Continental", "Cheese Tortellini Arrabiata", "Hand-crafted cheese-filled pasta pockets tossed in a fiery, herb-infused tomato Arrabiata sauce", 599),
         ("Pizza & Continental", "Garlic Bread", "Toasted bread with garlic butter and herbs", 300),
 
         # Soups & Salads
