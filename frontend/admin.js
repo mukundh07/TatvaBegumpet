@@ -1,6 +1,6 @@
-const API_URL = window.location.hostname === 'tatvabegumpet.onrender.com'
-    ? 'https://tatvabegumpet.onrender.com/api'
-    : '/api';
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? (window.location.port === '5000' || window.location.port === '8000' ? '/api' : 'http://127.0.0.1:5000/api')
+    : 'https://tatvabegumpet.onrender.com/api';
 
 // --- DOM Elements ---
 const loginOverlay = document.getElementById('login-overlay');
