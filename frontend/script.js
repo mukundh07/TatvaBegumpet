@@ -2,9 +2,9 @@
    TATVA – MODERN DINING | JavaScript
    ============================================ */
 
-const API_URL = window.location.hostname === 'tatvabegumpet.onrender.com'
-    ? 'https://tatvabegumpet.onrender.com/api'
-    : '/api';
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? '/api'
+    : (window.location.protocol === 'file:' ? 'http://localhost:5000/api' : '/api');
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -167,13 +167,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (menuContainer) {
         fetch(`${API_URL}/menu`)
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                return res.json();
+            })
             .then(data => {
                 renderMenu(data);
             })
             .catch(err => {
                 console.error('Failed to load menu:', err);
-                menuContainer.innerHTML = '<p style="text-align:center;width:100%;">Failed to load menu data. Please try again later.</p>';
+                menuContainer.innerHTML = `<p style="text-align:center;width:100%;">Failed to load menu data (Error: ${err.message}). Please ensure the backend is running.</p>`;
             });
     }
 
